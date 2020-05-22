@@ -110,7 +110,7 @@ module.exports = {
             })
 
             if (!company) {
-                return res.notFound(`Role with id ${req.params.id} can\'t be found`)
+                return res.notFound(`Company with id ${req.params.id} can\'t be found`)
             }
 
             return res.api(200, 'success', company)
