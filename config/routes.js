@@ -9,7 +9,7 @@
  */
 
 module.exports.routes = {
-  '/': { response: 'forbiden' },
+  '/': { response: 'forbidden' },
 
   // REST API Routes
   'POST r|^/(agent)?(user)?/auth$|agent,user': 'AuthController.index',
