@@ -43,8 +43,13 @@ module.exports = {
         }
 
         async start() {
-            console.log('Whatsapp instances is starting...')
+            sails.log.info(`Whatsapp ${this.phoneNumber} instance is starting...`)
             return this.client.initialize()
+        }
+
+        async stop() {
+            sails.log.info(`Whatsapp ${this.phoneNumber} instance is stoping...`)
+            return this.client.destroy()
         }
     }
 

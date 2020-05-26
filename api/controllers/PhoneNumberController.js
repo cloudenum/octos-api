@@ -3,8 +3,11 @@ const projections = [
     'id',
     'phone',
     'countryCode',
+    'poolIndex',
+    'isActive'
 ]
 const { Whatsapp } = require('../services/WhatsappService')
+const { WhatsappPool } = require('../services/WhatsappPoolService')
 
 module.exports = {
     async create(req, res) {
@@ -16,20 +19,22 @@ module.exports = {
             const schema = joi.object({
                 phone: joi.number().min(100000000).integer().positive(),
                 countryCode: joi.number().positive().max(999).integer().required(),
-                user: joi.string().hex().min(16).required()
+                user: joi.string().hex().required()
             })
 
             const { value, error } = schema.validate(req.allParams())
-
+            const { phone, countryCode, user } = value
             if (error instanceof joi.ValidationError) {
                 return res.badRequest(ValidationService.produceMessages(error.details))
             }
 
-            let phoneNumber = await PhoneNumber.create(value).fetch()
-
-            // const wa = new Whatsapp(phoneNumber.phone)
-
-            // wa.start()
+            let phoneNumber = await PhoneNumber.create({
+                phone,
+                countryCode,
+                user,
+                poolIndex: null,
+                isActive: false
+            }).fetch()
 
             return res.api(200, 'success', phoneNumber)
         } catch (err) {
@@ -234,10 +239,23 @@ module.exports = {
             }).populate('user')
 
             if (!phoneNumber) {
-                return res.notFound(`Phone number (${req.params.phone}) can\'t be found`)
+                return res.notFound(`Phone number (${value.phone}) can\'t be found`)
             }
 
             const wa = new Whatsapp(phoneNumber.phone)
+            const index = WhatsappPool.append(wa)
+            WhatsappPool.pool[index].start()
+
+            const update = await PhoneNumber.updateOne({ where: { phone: value.id } })
+                .set({
+                    poolIndex: index,
+                    isActive: true
+                })
+
+            if (!update) {
+                await WhatsappPool.pool[index].stop()
+                return res.api(200, 'failed', null)
+            }
 
             return res.api(200, 'success', phoneNumber)
         } catch (err) {
@@ -254,7 +272,5 @@ module.exports = {
             sails.log.error(err.stack)
             throw err
         }
-
-
     }
 }

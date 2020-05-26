@@ -8,6 +8,12 @@ module.exports = {
             type: 'number',
             required: true
         },
+        poolIndex: {
+            type: 'number'
+        },
+        isActive: {
+            type: 'boolean'
+        },
         user: {
             model: 'user',
             columnName: 'userId'
