@@ -9,7 +9,7 @@
  */
 
 module.exports.routes = {
-  '/': { view: 'pages/homepage' },
+  '/': { response: 'forbiden' },
 
   // REST API Routes
   'POST r|^/(agent)?(user)?/auth$|agent,user': 'AuthController.index',
